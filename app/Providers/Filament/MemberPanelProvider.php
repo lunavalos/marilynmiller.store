@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\MemberRegister;
 use App\Filament\Pages\SessionsCalendar;
 use App\Filament\Resources\BookingResource;
 use App\Filament\Resources\CourseResource;
@@ -10,6 +11,7 @@ use App\Filament\Resources\SessionResource;
 use App\Filament\Resources\VideoResource;
 use App\Filament\Widgets\SubscriberDashboardWidget;
 use App\Filament\Widgets\SubscriberOverviewWidget;
+use App\Livewire\MySubscriptionPlan;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -36,6 +38,7 @@ class MemberPanelProvider extends PanelProvider
             ->id('member')
             ->path('member')
             ->login()
+            ->registration(MemberRegister::class)
             ->brandLogo(asset('logo.svg'))
             ->brandLogoHeight('3rem')
             ->favicon(asset('favicon.png'))
@@ -89,7 +92,7 @@ class MemberPanelProvider extends PanelProvider
                         slug: 'my-profile'
                     )
                     ->myProfileComponents([
-                        'my_subscription_plan' => \App\Livewire\MySubscriptionPlan::class,
+                        'my_subscription_plan' => MySubscriptionPlan::class,
                     ])
                     ->enableTwoFactorAuthentication(
                         force: false,
@@ -97,4 +100,3 @@ class MemberPanelProvider extends PanelProvider
             );
     }
 }
-
