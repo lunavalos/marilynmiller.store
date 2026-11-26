@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -95,5 +96,33 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_filament_breezy_my_profile_livewire_update_succeeds_without_419(): void
+    {
+        $role = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole($role);
+
+        $pageResponse = $this->actingAs($user)->get('/admin/my-profile');
+        $pageResponse->assertOk();
+
+        preg_match('/wire:snapshot="([^"]+)"/', $pageResponse->getContent(), $matches);
+        $this->assertNotEmpty($matches);
+
+        $snapshotJson = html_entity_decode($matches[1], ENT_QUOTES);
+
+        $updateResponse = $this->actingAs($user)->postJson('/livewire/update', [
+            '_token' => csrf_token(),
+            'components' => [
+                [
+                    'snapshot' => $snapshotJson,
+                    'updates' => [],
+                    'calls' => [],
+                ],
+            ],
+        ]);
+
+        $updateResponse->assertOk();
     }
 }
