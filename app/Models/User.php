@@ -4,21 +4,21 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'plan_id', 'is_active', 'avatar_url'])]
+#[Fillable(['name', 'email', 'preferred_language', 'password', 'plan_id', 'is_active', 'avatar_url'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements HasAvatar, FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     public function canAccessPanel(Panel $panel): bool
     {
@@ -53,7 +53,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser
     }
 
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, SoftDeletes, \Laravel\Sanctum\HasApiTokens, \Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, \Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable, \Laravel\Sanctum\HasApiTokens, Notifiable, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.

@@ -6,17 +6,19 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
+use Jeffgreco13\FilamentBreezy\Pages\MyProfilePage;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -65,21 +67,18 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->userMenuItems([
-                'account' => \Filament\Navigation\MenuItem::make()
+                'account' => MenuItem::make()
                     ->label('My profile')
-                    ->url(fn (): string => \Jeffgreco13\FilamentBreezy\Pages\MyProfilePage::getUrl()),
+                    ->url(fn (): string => MyProfilePage::getUrl()),
             ])
             ->plugin(
-                \Jeffgreco13\FilamentBreezy\BreezyCore::make()
+                BreezyCore::make()
                     ->myProfile(
                         shouldRegisterUserMenu: false,
                         shouldRegisterNavigation: false,
                         hasAvatars: true,
                         slug: 'my-profile'
                     )
-                    ->myProfileComponents([
-                        'my_subscription_plan' => \App\Livewire\MySubscriptionPlan::class,
-                    ])
                     ->enableTwoFactorAuthentication(
                         force: false,
                     )

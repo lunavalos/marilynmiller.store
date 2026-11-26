@@ -16,7 +16,11 @@ class MySubscriptionPlan extends MyProfileComponent
 
     public static function canView(): bool
     {
-        return auth()->check();
+        $user = auth()->user();
+
+        return $user !== null
+            && $user->hasRole('subscribed')
+            && ! $user->hasAnyRole(['super_admin', 'admin']);
     }
 
     public function changePlanAction(): Action
@@ -31,7 +35,7 @@ class MySubscriptionPlan extends MyProfileComponent
                 $diff = abs($targetPrice - $currentPrice);
 
                 return $isUpgrade
-                    ? 'Upgrade (+$' . number_format($diff, 2) . ' USD)'
+                    ? 'Upgrade (+$'.number_format($diff, 2).' USD)'
                     : 'Downgrade';
             })
             ->icon(function (array $arguments): string {
@@ -70,11 +74,11 @@ class MySubscriptionPlan extends MyProfileComponent
                 $currentPrice = (float) ($user->plan?->price ?? 0);
                 $targetPrice = (float) ($plan?->price ?? 0);
 
-                return ($targetPrice > $currentPrice ? 'Upgrade to ' : 'Downgrade to ') . ($plan?->name_en ?? 'Plan');
+                return ($targetPrice > $currentPrice ? 'Upgrade to ' : 'Downgrade to ').($plan?->name_en ?? 'Plan');
             })
             ->modalDescription(function (array $arguments): string {
                 $plan = Plan::find($arguments['plan_id'] ?? null);
-                if (!$plan) {
+                if (! $plan) {
                     return '';
                 }
                 $user = Filament::getCurrentPanel()->auth()->user();
@@ -83,16 +87,16 @@ class MySubscriptionPlan extends MyProfileComponent
                 $isUpgrade = $targetPrice > $currentPrice;
                 $diff = abs($targetPrice - $currentPrice);
 
-                $cycleLabel = match($plan->billing_cycle) {
+                $cycleLabel = match ($plan->billing_cycle) {
                     'every_4_weeks' => '4 weeks',
                     default => $plan->billing_cycle,
                 };
 
                 if ($isUpgrade) {
-                    return "Are you sure you want to upgrade your membership to {$plan->name_en} ($" . number_format($targetPrice, 2) . " USD / {$cycleLabel})? You will be charged the difference of $" . number_format($diff, 2) . " USD.";
+                    return "Are you sure you want to upgrade your membership to {$plan->name_en} ($".number_format($targetPrice, 2)." USD / {$cycleLabel})? You will be charged the difference of $".number_format($diff, 2).' USD.';
                 }
 
-                return "Are you sure you want to downgrade your membership to {$plan->name_en} ($" . number_format($targetPrice, 2) . " USD / {$cycleLabel})?";
+                return "Are you sure you want to downgrade your membership to {$plan->name_en} ($".number_format($targetPrice, 2)." USD / {$cycleLabel})?";
             })
             ->modalSubmitActionLabel(function (array $arguments): string {
                 $plan = Plan::find($arguments['plan_id'] ?? null);
@@ -102,7 +106,7 @@ class MySubscriptionPlan extends MyProfileComponent
                 $diff = abs($targetPrice - $currentPrice);
 
                 return $targetPrice > $currentPrice
-                    ? 'Confirm & Pay $' . number_format($diff, 2) . ' USD'
+                    ? 'Confirm & Pay $'.number_format($diff, 2).' USD'
                     : 'Confirm Downgrade';
             })
             ->action(function (array $arguments) {
@@ -125,10 +129,10 @@ class MySubscriptionPlan extends MyProfileComponent
         $isUpgrade = $targetPrice > $currentPrice;
         $difference = max(0, $targetPrice - $currentPrice);
 
-        if ($isUpgrade && !empty($targetPlan->stripe_payment_link)) {
+        if ($isUpgrade && ! empty($targetPlan->stripe_payment_link)) {
             $paymentLink = $targetPlan->stripe_payment_link;
             $separator = parse_url($paymentLink, PHP_URL_QUERY) ? '&' : '?';
-            $checkoutUrl = $paymentLink . $separator . 'client_reference_id=' . $user->id . '&prefilled_email=' . urlencode($user->email);
+            $checkoutUrl = $paymentLink.$separator.'client_reference_id='.$user->id.'&prefilled_email='.urlencode($user->email);
 
             return redirect()->away($checkoutUrl);
         }
@@ -142,10 +146,10 @@ class MySubscriptionPlan extends MyProfileComponent
             Notification::make()
                 ->success()
                 ->title("Upgraded to {$targetPlan->name_en}!")
-                ->body('Charged difference of $' . number_format($difference, 2) . ' USD (Payment simulation active).')
+                ->body('Charged difference of $'.number_format($difference, 2).' USD (Payment simulation active).')
                 ->send();
         } else {
-            $cycleLabel = match($targetPlan->billing_cycle) {
+            $cycleLabel = match ($targetPlan->billing_cycle) {
                 'every_4_weeks' => '4 weeks',
                 default => $targetPlan->billing_cycle,
             };

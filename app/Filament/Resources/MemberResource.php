@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\HasResourcePermissions;
 use App\Filament\Resources\MemberResource\Pages;
 use App\Models\User;
 use Filament\Forms;
@@ -13,15 +14,19 @@ use Illuminate\Database\Eloquent\Builder;
 
 class MemberResource extends Resource
 {
-    use \App\Filament\Concerns\HasResourcePermissions;
+    use HasResourcePermissions;
 
     protected static ?string $model = User::class;
-    protected static ?string $modelLabel = 'Subscriber';
-    protected static ?string $pluralModelLabel = 'Subscriptions';
-    protected static ?string $slug = 'subscriptions';
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationGroup = 'Users & Security';
 
+    protected static ?string $modelLabel = 'Subscriber';
+
+    protected static ?string $pluralModelLabel = 'Subscriptions';
+
+    protected static ?string $slug = 'subscriptions';
+
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
+    protected static ?string $navigationGroup = 'Users & Security';
 
     public static function form(Form $form): Form
     {
@@ -31,6 +36,14 @@ class MemberResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('email')
                     ->email()
+                    ->required(),
+                Forms\Components\Select::make('preferred_language')
+                    ->label('Preferred Language')
+                    ->options([
+                        'en' => 'English',
+                        'es' => 'Español',
+                    ])
+                    ->default('en')
                     ->required(),
                 Forms\Components\TextInput::make('password')
                     ->password()
@@ -57,6 +70,10 @@ class MemberResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('preferred_language')
+                    ->label('Language')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => $state === 'es' ? 'Español' : 'English'),
                 Tables\Columns\TextColumn::make('plan.name_en')
                     ->label('Plan')
                     ->sortable(),

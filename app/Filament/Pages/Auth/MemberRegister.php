@@ -2,6 +2,10 @@
 
 namespace App\Filament\Pages\Auth;
 
+use App\Notifications\WelcomeUserNotification;
+use Filament\Forms\Components\Component;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Form;
 use Filament\Pages\Auth\Register as BaseRegister;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Models\Permission;
@@ -9,9 +13,49 @@ use Spatie\Permission\Models\Role;
 
 class MemberRegister extends BaseRegister
 {
+    protected ?string $rawPassword = null;
+
+    /**
+     * @return array<int | string, string | Form>
+     */
+    protected function getForms(): array
+    {
+        return [
+            'form' => $this->form(
+                $this->makeForm()
+                    ->schema([
+                        $this->getNameFormComponent(),
+                        $this->getEmailFormComponent(),
+                        $this->getPreferredLanguageFormComponent(),
+                        $this->getPasswordFormComponent(),
+                        $this->getPasswordConfirmationFormComponent(),
+                    ])
+                    ->statePath('data'),
+            ),
+        ];
+    }
+
+    protected function getPreferredLanguageFormComponent(): Component
+    {
+        return Select::make('preferred_language')
+            ->label('Preferred Language / Idioma preferido')
+            ->options([
+                'en' => 'English',
+                'es' => 'Español',
+            ])
+            ->default('en')
+            ->required();
+    }
+
+    protected function beforeValidate(): void
+    {
+        $this->rawPassword = is_string($this->data['password'] ?? null) ? $this->data['password'] : null;
+    }
+
     protected function handleRegistration(array $data): Model
     {
         $data['is_active'] = true;
+        $data['preferred_language'] = $data['preferred_language'] ?? 'en';
 
         $user = $this->getUserModel()::create($data);
 
@@ -41,6 +85,12 @@ class MemberRegister extends BaseRegister
         }
 
         $user->assignRole($role);
+
+        $user->notify(new WelcomeUserNotification(
+            plainPassword: $this->rawPassword,
+            panel: 'member',
+            language: $user->preferred_language,
+        ));
 
         return $user;
     }
