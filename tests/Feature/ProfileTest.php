@@ -208,6 +208,18 @@ class ProfileTest extends TestCase
                     && str_contains($mail->actionUrl, '/admin/login');
             }
         );
+
+        Livewire::actingAs($superAdmin)
+            ->test(ManageUsers::class)
+            ->callAction('create', data: [
+                'name' => 'Duplicate Carlos',
+                'email' => 'carlos@millyfit.test',
+                'preferred_language' => 'es',
+                'password' => 'SecretPass123!',
+                'roles' => [$adminRole->id],
+                'is_active' => true,
+            ])
+            ->assertHasActionErrors(['email' => 'unique']);
     }
 
     public function test_member_registration_sends_welcome_email_in_selected_language(): void
