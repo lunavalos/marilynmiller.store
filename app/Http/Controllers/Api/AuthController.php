@@ -8,7 +8,9 @@ use App\Models\User;
 use App\Notifications\WelcomeUserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -41,11 +43,19 @@ class AuthController extends Controller
         // Assign 'subscribed' role (Spatie Permission)
         $user->assignRole('subscribed');
 
-        $user->notify(new WelcomeUserNotification(
-            plainPassword: $request->password,
-            panel: 'member',
-            language: $preferredLanguage,
-        ));
+        try {
+            $user->notify(new WelcomeUserNotification(
+                plainPassword: $request->password,
+                panel: 'member',
+                language: $preferredLanguage,
+            ));
+        } catch (Throwable $e) {
+            Log::error('Failed to send welcome email on API registration', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         if (! $plan->stripe_payment_link) {
             // Simulate payment for development

@@ -8,8 +8,10 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Pages\Auth\Register as BaseRegister;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Throwable;
 
 class MemberRegister extends BaseRegister
 {
@@ -86,11 +88,19 @@ class MemberRegister extends BaseRegister
 
         $user->assignRole($role);
 
-        $user->notify(new WelcomeUserNotification(
-            plainPassword: $this->rawPassword,
-            panel: 'member',
-            language: $user->preferred_language,
-        ));
+        try {
+            $user->notify(new WelcomeUserNotification(
+                plainPassword: $this->rawPassword,
+                panel: 'member',
+                language: $user->preferred_language,
+            ));
+        } catch (Throwable $e) {
+            Log::error('Failed to send welcome email on member self-registration', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return $user;
     }
