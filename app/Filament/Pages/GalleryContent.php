@@ -15,8 +15,11 @@ class GalleryContent extends Page implements HasForms
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
+
     protected static ?string $navigationGroup = 'Website Content';
+
     protected static ?string $title = 'Gallery';
+
     protected static ?string $navigationLabel = 'Gallery';
 
     protected static string $view = 'filament.pages.content-page';
@@ -53,13 +56,13 @@ class GalleryContent extends Page implements HasForms
 
     public function submit(): void
     {
-        $content = ContentModel::first();
-        if ($content) {
-            $content->update($this->form->getState());
-            Notification::make()
-                ->success()
-                ->title('Gallery saved successfully')
-                ->send();
-        }
+        $content = ContentModel::first() ?? new ContentModel;
+        $content->fill($this->form->getState());
+        $content->save();
+
+        Notification::make()
+            ->success()
+            ->title('Gallery saved successfully')
+            ->send();
     }
 }

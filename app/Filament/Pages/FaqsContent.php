@@ -17,8 +17,11 @@ class FaqsContent extends Page implements HasForms
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';
+
     protected static ?string $navigationGroup = 'Website Content';
+
     protected static ?string $title = 'FAQs';
+
     protected static ?string $navigationLabel = 'FAQs';
 
     protected static string $view = 'filament.pages.content-page';
@@ -59,13 +62,13 @@ class FaqsContent extends Page implements HasForms
 
     public function submit(): void
     {
-        $content = ContentModel::first();
-        if ($content) {
-            $content->update($this->form->getState());
-            Notification::make()
-                ->success()
-                ->title('FAQs saved successfully')
-                ->send();
-        }
+        $content = ContentModel::first() ?? new ContentModel;
+        $content->fill($this->form->getState());
+        $content->save();
+
+        Notification::make()
+            ->success()
+            ->title('FAQs saved successfully')
+            ->send();
     }
 }
